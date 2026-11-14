@@ -1,0 +1,225 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  email         String?         @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+  profile       FitnessProfile?
+  settings      UserSettings?
+  plans         WorkoutPlan[]
+  workouts      WorkoutSession[]
+  measurements  BodyMeasurement[]
+  aiConfig      AiProviderConfig?
+  memories      AiMemory[]
+  reports       AiReport[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([sessionToken])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  @@id([identifier, token])
+}
+
+model FitnessProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  dateOfBirth     DateTime?
+  heightCm        Float?
+  gender          String?
+  goal            String?
+  experience      String?
+  activityLevel   String?
+  trainingDays    Int      @default(3)
+  sessionMinutes  Int      @default(60)
+  equipment       String[] @default([])
+  preferences     String[] @default([])
+  limitations     String?  @db.Text
+  completedAt     DateTime?
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserSettings {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  weightUnit  String   @default("kg")
+  heightUnit  String   @default("cm")
+  timezone    String   @default("Asia/Calcutta")
+  weekStarts  Int      @default(1)
+  theme       String   @default("system")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BodyMeasurement {
+  id        String   @id @default(cuid())
+  userId    String
+  recordedAt DateTime @default(now())
+  weightKg  Float?
+  bodyFat   Float?
+  notes     String?  @db.Text
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, recordedAt])
+}
+
+model WorkoutPlan {
+  id        String         @id @default(cuid())
+  userId    String
+  name      String
+  active    Boolean        @default(false)
+  archived  Boolean        @default(false)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  days      WorkoutDay[]
+  sessions  WorkoutSession[]
+  @@index([userId, active])
+}
+
+model WorkoutDay {
+  id        String          @id @default(cuid())
+  planId    String
+  weekday   Int
+  name      String
+  isRest    Boolean         @default(false)
+  plan      WorkoutPlan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  exercises PlannedExercise[]
+  @@unique([planId, weekday])
+}
+
+model PlannedExercise {
+  id          String   @id @default(cuid())
+  dayId       String
+  name        String
+  muscleGroup String?
+  equipment   String?
+  sets        Int      @default(3)
+  repsMin     Int      @default(8)
+  repsMax     Int      @default(12)
+  targetKg    Float?
+  restSeconds Int      @default(90)
+  rpe         Float?
+  notes       String?  @db.Text
+  sortOrder   Int      @default(0)
+  day         WorkoutDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+}
+
+model WorkoutSession {
+  id          String        @id @default(cuid())
+  userId      String
+  planId      String?
+  title       String
+  status      String        @default("IN_PROGRESS")
+  startedAt   DateTime      @default(now())
+  completedAt DateTime?
+  durationSec Int?
+  pausedAt    DateTime?
+  pausedSeconds Int @default(0)
+  notes       String?       @db.Text
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan        WorkoutPlan?  @relation(fields: [planId], references: [id], onDelete: SetNull)
+  exercises   SessionExercise[]
+  @@index([userId, startedAt])
+}
+
+model SessionExercise {
+  id          String        @id @default(cuid())
+  sessionId   String
+  name        String
+  muscleGroup String?
+  restSeconds Int?
+  sortOrder   Int           @default(0)
+  skipped     Boolean       @default(false)
+  notes       String?       @db.Text
+  session     WorkoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sets        WorkoutSet[]
+}
+
+model WorkoutSet {
+  id                String          @id @default(cuid())
+  exerciseId        String
+  setNumber         Int
+  targetRepsMin     Int?
+  targetRepsMax     Int?
+  targetKg          Float?
+  targetRpe         Float?
+  actualReps        Int?
+  actualKg          Float?
+  rpe               Float?
+  completed         Boolean         @default(false)
+  exercise          SessionExercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  @@index([exerciseId, setNumber])
+}
+
+model AiProviderConfig {
+  userId      String   @id
+  ciphertext  String
+  iv          String
+  authTag     String
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AiMemory {
+  id         String   @id @default(cuid())
+  userId     String
+  category   String
+  content    String   @db.Text
+  evidence   String?  @db.Text
+  confidence Float    @default(0.8)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  reviewAt   DateTime?
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, category])
+}
+
+model AiReport {
+  id        String   @id @default(cuid())
+  userId    String
+  kind      String
+  dateKey   String
+  status    String   @default("READY")
+  content   Json
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, kind, dateKey])
+  @@index([userId, createdAt])
+}
