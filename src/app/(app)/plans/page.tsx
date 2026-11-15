@@ -6,7 +6,7 @@ import { fromKilograms, type WeightUnit } from "@/lib/units";
 import { ExerciseNameField, NumericStepper, RestDurationField, WeightControl } from "@/components/form-controls";
 import { ActionForm, PendingSubmitButton } from "@/components/action-form";
 import { ConfirmSubmit } from "@/components/confirm-submit";
-import { PlanExerciseDialog } from "@/components/plan-exercise-dialog";
+import { PlanExerciseEditor } from "@/components/plan-exercise-editor";
 
 type PlanExercise = { id: string; name: string; muscleGroup: string|null; equipment: string|null; sets: number; repsMin: number; repsMax: number; targetKg: number|null; restSeconds: number; rpe: number|null; notes: string|null };
 
@@ -59,12 +59,12 @@ export default async function PlansPage() {
           <div className="planned-exercise-heading"><span className="exercise-index">{String(index + 1).padStart(2,"0")}</span><div className="planned-exercise-copy"><strong>{exercise.name}</strong><span>{exercise.sets} × {exercise.repsMin}–{exercise.repsMax}{exercise.targetKg != null ? ` · ${Number(fromKilograms(exercise.targetKg,weightUnit).toFixed(1))} ${weightUnit}` : ""}</span></div></div>
           <div className="exercise-tool-row"><ActionForm action={moveExercise} successMessage="Exercise order updated."><input type="hidden" name="exerciseId" value={exercise.id}/><input type="hidden" name="direction" value="up"/><PendingSubmitButton className="icon-button" aria-label="Move exercise up" title="Move exercise up" disabled={index===0}><ArrowUp size={14}/></PendingSubmitButton></ActionForm>
             <ActionForm action={moveExercise} successMessage="Exercise order updated."><input type="hidden" name="exerciseId" value={exercise.id}/><input type="hidden" name="direction" value="down"/><PendingSubmitButton className="icon-button" aria-label="Move exercise down" title="Move exercise down" disabled={index===day.exercises.length-1}><ArrowDown size={14}/></PendingSubmitButton></ActionForm>
-            <PlanExerciseDialog mode="update" recordId={exercise.id}><ExerciseFields exercise={exercise} weightUnit={weightUnit}/></PlanExerciseDialog>
+            <PlanExerciseEditor mode="update" recordId={exercise.id}><ExerciseFields exercise={exercise} weightUnit={weightUnit}/></PlanExerciseEditor>
             <ActionForm action={duplicateExercise} successMessage="Exercise duplicated."><input type="hidden" name="exerciseId" value={exercise.id}/><PendingSubmitButton className="icon-button" title="Duplicate exercise" aria-label="Duplicate exercise"><Copy size={14}/></PendingSubmitButton></ActionForm>
             <ActionForm action={removeExercise} successMessage="Exercise removed from your plan."><input type="hidden" name="exerciseId" value={exercise.id}/><ConfirmSubmit className="icon-button danger-icon-button" confirmTitle="Remove this exercise?" description={`${exercise.name} will be removed from this plan. Workout records already completed are kept.`} confirmLabel="Remove exercise" title="Remove exercise" aria-label="Remove exercise"><Trash2 size={14}/></ConfirmSubmit></ActionForm>
           </div>
         </li>)}</ul> : <p className="day-empty">{day.isRest ? "A recovery day" : "No exercises yet"}</p>}
-        {!day.isRest && <div className="add-exercise"><PlanExerciseDialog mode="add" recordId={day.id}><ExerciseFields weightUnit={weightUnit}/></PlanExerciseDialog></div>}
+        {!day.isRest && <div className="add-exercise"><PlanExerciseEditor mode="add" recordId={day.id}><ExerciseFields weightUnit={weightUnit}/></PlanExerciseEditor></div>}
       </article>)}</div></div>
     </section>)}</div>}
   </>;
