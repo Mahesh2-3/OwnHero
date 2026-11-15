@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Hero — Training, with intention",
+  title: "OwnHero — Training, with intention",
   description: "A calm, personal space to plan training, log performance and understand progress."
 };
 

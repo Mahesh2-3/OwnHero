@@ -11,5 +11,5 @@ export async function GET() {
     prisma.workoutSession.findMany({ where: { userId }, include: { exercises: { include: { sets: true } } } }),
     prisma.bodyMeasurement.findMany({ where: { userId } }), prisma.aiMemory.findMany({ where: { userId } }), prisma.aiReport.findMany({ where: { userId } })
   ]);
-  return new Response(JSON.stringify({ exportedAt: new Date().toISOString(), profile, settings, plans, workouts, measurements, memories, reports }, null, 2), { headers: { "Content-Type": "application/json", "Content-Disposition": "attachment; filename=hero-fitness-export.json", "Cache-Control": "private, no-store" } });
+  return new Response(JSON.stringify({ exportedAt: new Date().toISOString(), profile, settings, plans, workouts, measurements, memories, reports }, null, 2), { headers: { "Content-Type": "application/json", "Content-Disposition": "attachment; filename=ownhero-fitness-export.json", "Cache-Control": "private, no-store" } });
 }

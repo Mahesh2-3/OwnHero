@@ -12,7 +12,7 @@ export default async function SettingsPage() {
 
   return <>
     <h1>Settings</h1>
-    <p className="subtle page-intro">Personalize how Hero looks and manage your account connections.</p>
+    <p className="subtle page-intro">Personalize how OwnHero looks and manage your account connections.</p>
     <section className="panel settings-section">
       <div className="section-heading"><h2>Appearance</h2><p className="subtle">Choose a neutral theme and a small accent for interactive elements.</p></div>
       <ThemeControl/>

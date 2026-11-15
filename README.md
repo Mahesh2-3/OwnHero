@@ -1,4 +1,4 @@
-# Hero Workout
+# OwnHero
 
 A private fitness workspace for planning training, recording completed sets, and following progress over time.
 
