@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { toKilograms } from "@/lib/units";
 import { randomUUID } from "node:crypto";
+import { flash } from "@/lib/flash";
 
 async function userId() {
   const session = await auth();
@@ -278,6 +279,7 @@ export async function startWorkout(formData: FormData) {
   const activeSession = await prisma.workoutSession.findFirst({ where: { userId: ownerId, planId: day.planId, title: day.name, status: { in: ["IN_PROGRESS", "PAUSED"] } }, orderBy: { startedAt: "desc" } });
   if (activeSession) redirect(`/workout/${activeSession.id}`);
   const session = await prisma.workoutSession.create({ data: { userId: ownerId, planId: day.planId, title: day.name, exercises: { create: day.exercises.map((exercise, i) => ({ name: exercise.name, muscleGroup: exercise.muscleGroup, restSeconds: exercise.restSeconds, notes: exercise.notes, sortOrder: i, sets: { create: Array.from({ length: exercise.sets }, (_, index) => ({ setNumber: index + 1, targetRepsMin: exercise.repsMin, targetRepsMax: exercise.repsMax, targetKg: exercise.targetKg, targetRpe: exercise.rpe })) } })) } } });
+  await flash("success", "Workout started. Have a strong session.");
   redirect(`/workout/${session.id}`);
 }
 
@@ -309,6 +311,7 @@ export async function finishWorkout(formData: FormData) {
   const completedAt = new Date();
   const currentPause = workout.pausedAt ? Math.floor((completedAt.getTime()-workout.pausedAt.getTime())/1000) : 0;
   await prisma.workoutSession.update({ where: { id }, data: { status: "COMPLETED", completedAt, durationSec: Math.max(0, Math.floor((completedAt.getTime()-workout.startedAt.getTime())/1000)-workout.pausedSeconds-currentPause), pausedAt: null } });
+  await flash("success", "Workout completed. Your progress has been updated.");
   revalidatePath("/dashboard");
   redirect("/dashboard");
 }
