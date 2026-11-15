@@ -11,7 +11,7 @@ function notify(kind: FlashKind, message: string) {
   window.dispatchEvent(new CustomEvent("hero:toast", { detail: { kind, message } }));
 }
 
-export function ActionForm({ action, successMessage, children, ...props }: Omit<FormHTMLAttributes<HTMLFormElement>, "action" | "onSubmit"> & { action: ServerFormAction; successMessage: string; children: ReactNode }) {
+export function ActionForm({ action, successMessage, onSuccess, children, ...props }: Omit<FormHTMLAttributes<HTMLFormElement>, "action" | "onSubmit"> & { action: ServerFormAction; successMessage: string; onSuccess?: () => void; children: ReactNode }) {
   const [pending, startTransition] = useTransition();
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -22,6 +22,7 @@ export function ActionForm({ action, successMessage, children, ...props }: Omit<
       try {
         await action(formData);
         notify("success", successMessage);
+        onSuccess?.();
       } catch (error) {
         const message = error instanceof Error && error.message && !error.message.includes("digest")
           ? error.message

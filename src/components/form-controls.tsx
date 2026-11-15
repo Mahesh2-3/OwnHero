@@ -80,7 +80,6 @@ export function RestDurationField({ defaultValue = 90 }: { defaultValue?: number
       {options.map(seconds => <button key={seconds} type="button" className={`preset-button ${value === seconds ? "selected" : ""}`} aria-pressed={value === seconds} onClick={() => setValue(seconds)}>{seconds}s</button>)}
       <button type="button" className={`preset-button ${!options.includes(value) ? "selected" : ""}`} aria-pressed={!options.includes(value)} onClick={() => setValue(defaultValue && !options.includes(defaultValue) ? defaultValue : 75)}>Custom</button>
     </div>
-    <label className="visually-hidden">Custom rest duration in seconds<input name="restSeconds" type="number" min="0" max="600" step="5" value={value} onChange={event => setValue(Number(event.target.value))} /></label>
     <input className="rest-exact" name="restSeconds" type="number" min="0" max="600" step="5" value={value} onChange={event => setValue(Number(event.target.value))} aria-label="Rest duration in seconds" />
   </div>;
 }

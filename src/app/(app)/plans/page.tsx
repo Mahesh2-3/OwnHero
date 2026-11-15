@@ -1,23 +1,24 @@
 import { auth } from "../../../../auth";
 import { prisma } from "@/lib/prisma";
-import { activatePlan, addExercise, archivePlan, createPlan, duplicateExercise, moveExercise, removeExercise, updateExercise, updateWorkoutDay } from "@/app/actions";
+import { activatePlan, archivePlan, createPlan, duplicateExercise, moveExercise, removeExercise, updateWorkoutDay } from "@/app/actions";
 import { ArrowDown, ArrowUp, Copy, Plus, Trash2 } from "lucide-react";
 import { fromKilograms, type WeightUnit } from "@/lib/units";
 import { ExerciseNameField, NumericStepper, RestDurationField, WeightControl } from "@/components/form-controls";
 import { ActionForm, PendingSubmitButton } from "@/components/action-form";
 import { ConfirmSubmit } from "@/components/confirm-submit";
+import { PlanExerciseDialog } from "@/components/plan-exercise-dialog";
 
 type PlanExercise = { id: string; name: string; muscleGroup: string|null; equipment: string|null; sets: number; repsMin: number; repsMax: number; targetKg: number|null; restSeconds: number; rpe: number|null; notes: string|null };
 
 function ExerciseFields({ exercise, weightUnit }: { exercise?: PlanExercise; weightUnit: WeightUnit }) {
   const targetWeight = exercise?.targetKg == null ? null : Number(fromKilograms(exercise.targetKg, weightUnit).toFixed(1));
   return <>
-    <div className="field"><label>Exercise</label><ExerciseNameField defaultValue={exercise?.name || ""}/></div>
+    <div className="field exercise-name-field"><label>Exercise</label><ExerciseNameField defaultValue={exercise?.name || ""}/></div>
     <div className="form-grid-two"><div className="field"><label>Muscle group</label><input name="muscleGroup" maxLength={50} defaultValue={exercise?.muscleGroup||""} placeholder="e.g. Chest"/></div><div className="field"><label>Equipment</label><input name="equipment" maxLength={50} defaultValue={exercise?.equipment||""} placeholder="e.g. Barbell"/></div></div>
     <div className="form-grid-three"><div className="field compact-field"><label>Sets</label><NumericStepper name="sets" label="Sets" min={1} max={20} defaultValue={exercise?.sets??3}/></div><div className="field compact-field"><label>Rep min</label><NumericStepper name="repsMin" label="Minimum repetitions" min={1} max={100} defaultValue={exercise?.repsMin??8}/></div><div className="field compact-field"><label>Rep max</label><NumericStepper name="repsMax" label="Maximum repetitions" min={1} max={100} defaultValue={exercise?.repsMax??12}/></div></div>
     <div className="form-grid-two"><div className="field"><label>Target load ({weightUnit}) <span className="subtle">(optional)</span></label><WeightControl name="targetKg" label="Target load" unit={weightUnit} defaultValue={targetWeight}/></div><div className="field"><label>Rest duration</label><RestDurationField defaultValue={exercise?.restSeconds??90}/></div></div>
     <div className="field"><label>Target effort <span className="subtle">(optional)</span></label><input name="rpe" type="number" min="1" max="10" step="0.5" defaultValue={exercise?.rpe??""} placeholder="RPE 1–10"/></div>
-    <div className="field"><label>Exercise notes <span className="subtle">(optional)</span></label><textarea name="notes" maxLength={500} rows={2} defaultValue={exercise?.notes||""} placeholder="Add a cue or setup note"/></div>
+    <div className="field exercise-notes-field"><label>Exercise notes <span className="subtle">(optional)</span></label><textarea name="notes" maxLength={500} rows={2} defaultValue={exercise?.notes||""} placeholder="Add a cue or setup note"/></div>
   </>;
 }
 
@@ -58,12 +59,12 @@ export default async function PlansPage() {
           <div className="planned-exercise-heading"><span className="exercise-index">{String(index + 1).padStart(2,"0")}</span><div className="planned-exercise-copy"><strong>{exercise.name}</strong><span>{exercise.sets} × {exercise.repsMin}–{exercise.repsMax}{exercise.targetKg != null ? ` · ${Number(fromKilograms(exercise.targetKg,weightUnit).toFixed(1))} ${weightUnit}` : ""}</span></div></div>
           <div className="exercise-tool-row"><ActionForm action={moveExercise} successMessage="Exercise order updated."><input type="hidden" name="exerciseId" value={exercise.id}/><input type="hidden" name="direction" value="up"/><PendingSubmitButton className="icon-button" aria-label="Move exercise up" title="Move exercise up" disabled={index===0}><ArrowUp size={14}/></PendingSubmitButton></ActionForm>
             <ActionForm action={moveExercise} successMessage="Exercise order updated."><input type="hidden" name="exerciseId" value={exercise.id}/><input type="hidden" name="direction" value="down"/><PendingSubmitButton className="icon-button" aria-label="Move exercise down" title="Move exercise down" disabled={index===day.exercises.length-1}><ArrowDown size={14}/></PendingSubmitButton></ActionForm>
-            <details className="exercise-edit"><summary>Edit</summary><ActionForm action={updateExercise} successMessage="Exercise changes saved." className="form-stack edit-exercise-form"><input type="hidden" name="exerciseId" value={exercise.id}/><ExerciseFields exercise={exercise} weightUnit={weightUnit}/><PendingSubmitButton className="outline-button" pendingLabel="Saving changes…">Save exercise</PendingSubmitButton></ActionForm></details>
+            <PlanExerciseDialog mode="update" recordId={exercise.id}><ExerciseFields exercise={exercise} weightUnit={weightUnit}/></PlanExerciseDialog>
             <ActionForm action={duplicateExercise} successMessage="Exercise duplicated."><input type="hidden" name="exerciseId" value={exercise.id}/><PendingSubmitButton className="icon-button" title="Duplicate exercise" aria-label="Duplicate exercise"><Copy size={14}/></PendingSubmitButton></ActionForm>
             <ActionForm action={removeExercise} successMessage="Exercise removed from your plan."><input type="hidden" name="exerciseId" value={exercise.id}/><ConfirmSubmit className="icon-button danger-icon-button" confirmTitle="Remove this exercise?" description={`${exercise.name} will be removed from this plan. Workout records already completed are kept.`} confirmLabel="Remove exercise" title="Remove exercise" aria-label="Remove exercise"><Trash2 size={14}/></ConfirmSubmit></ActionForm>
           </div>
         </li>)}</ul> : <p className="day-empty">{day.isRest ? "A recovery day" : "No exercises yet"}</p>}
-        {!day.isRest && <details className="add-exercise"><summary><Plus size={13}/>Add exercise</summary><ActionForm action={addExercise} successMessage="Exercise added to your plan." className="form-stack add-exercise-form"><input type="hidden" name="dayId" value={day.id}/><ExerciseFields weightUnit={weightUnit}/><PendingSubmitButton className="outline-button" pendingLabel="Adding exercise…">Add exercise</PendingSubmitButton></ActionForm></details>}
+        {!day.isRest && <div className="add-exercise"><PlanExerciseDialog mode="add" recordId={day.id}><ExerciseFields weightUnit={weightUnit}/></PlanExerciseDialog></div>}
       </article>)}</div></div>
     </section>)}</div>}
   </>;
