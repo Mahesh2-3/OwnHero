@@ -56,3 +56,7 @@ Before the first production deployment, configure the production database and ru
 In Google Cloud Console, add `https://<your-production-domain>/api/auth/callback/google` as an authorized redirect URI. Google also allows the localhost callback for development. Set production secrets only for the Production environment; add separate staging credentials and a separate database if Preview deployments need sign-in or data access.
 
 Vercel automatically selects the Next.js build settings and currently defaults new projects to Node.js 24. Auth.js detects Vercel as a trusted host. For another reverse-proxy host, follow Auth.js deployment guidance for `AUTH_TRUST_HOST`.
+
+## Progressive web app
+
+OwnHero can be installed from a supported browser using the browser's **Install app** or **Add to Home Screen** option. The service worker caches versioned static assets and a simple offline page; it deliberately does not cache dashboard pages, workouts, API responses, or account data. Logging workouts still requires a network connection.

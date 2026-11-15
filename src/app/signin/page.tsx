@@ -1,10 +1,11 @@
 import { signIn } from "../../../auth";
+import Image from "next/image";
 import { Activity, ArrowRight, ArrowUpRight, CalendarDays, ChartNoAxesColumnIncreasing, Dumbbell, LockKeyhole } from "lucide-react";
 
 export default function SignInPage() {
   return <main className="signin-layout">
     <section className="signin-story" aria-labelledby="signin-story-title">
-      <div className="brand signin-brand"><span className="brand-mark"><Activity size={16}/></span><span>OwnHero</span></div>
+      <Image src="/ownhero-logo.webp" alt="OwnHero" width={230} height={154} priority className="signin-brand-image"/>
       <div className="signin-story-content">
         <span className="signin-kicker"><span/>YOUR TRAINING, WITH INTENTION</span>
         <h1 id="signin-story-title">Build strength<br/>that <span>stays with you.</span></h1>
@@ -24,7 +25,6 @@ export default function SignInPage() {
 
     <section className="signin-auth" aria-labelledby="signin-title">
       <div className="signin-auth-inner">
-        <div className="signin-mobile-brand brand"><span className="brand-mark"><Activity size={16}/></span><span>OwnHero</span></div>
         <span className="signin-auth-kicker">YOUR PERSONAL TRAINING SPACE</span>
         <h2 id="signin-title">Welcome back.</h2>
         <p className="signin-auth-copy">Pick up where you left off and keep building.</p>
