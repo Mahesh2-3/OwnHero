@@ -60,3 +60,7 @@ Vercel automatically selects the Next.js build settings and currently defaults n
 ## Progressive web app
 
 OwnHero can be installed from a supported browser using the browser's **Install app** or **Add to Home Screen** option. The service worker caches versioned static assets and a simple offline page; it deliberately does not cache dashboard pages, workouts, API responses, or account data. Logging workouts still requires a network connection.
+
+## Exercise catalog credit
+
+Workout plan exercise search uses the RepDB free exercise catalog. **Exercise data by [RepDB (repdb.co)](https://repdb.co)**. Exercise names, muscle targets, equipment, and one exercise illustration per catalog entry are packaged in the app.

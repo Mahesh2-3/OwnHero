@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { activatePlan, archivePlan, createPlan, duplicateExercise, moveExercise, removeExercise, updateWorkoutDay } from "@/app/actions";
 import { ArrowDown, ArrowUp, Copy, Plus, Trash2 } from "lucide-react";
 import { fromKilograms, type WeightUnit } from "@/lib/units";
-import { ExerciseNameField, NumericStepper, RestDurationField, WeightControl } from "@/components/form-controls";
+import { NumericStepper, RestDurationField, WeightControl } from "@/components/form-controls";
+import { ExercisePicker } from "@/components/exercise-picker";
 import { ActionForm, PendingSubmitButton } from "@/components/action-form";
 import { ConfirmSubmit } from "@/components/confirm-submit";
 import { PlanExerciseEditor } from "@/components/plan-exercise-editor";
@@ -13,8 +14,7 @@ type PlanExercise = { id: string; name: string; muscleGroup: string|null; equipm
 function ExerciseFields({ exercise, weightUnit }: { exercise?: PlanExercise; weightUnit: WeightUnit }) {
   const targetWeight = exercise?.targetKg == null ? null : Number(fromKilograms(exercise.targetKg, weightUnit).toFixed(1));
   return <>
-    <div className="field exercise-name-field"><label>Exercise</label><ExerciseNameField defaultValue={exercise?.name || ""}/></div>
-    <div className="form-grid-two"><div className="field"><label>Muscle group</label><input name="muscleGroup" maxLength={50} defaultValue={exercise?.muscleGroup||""} placeholder="e.g. Chest"/></div><div className="field"><label>Equipment</label><input name="equipment" maxLength={50} defaultValue={exercise?.equipment||""} placeholder="e.g. Barbell"/></div></div>
+    <div className="exercise-name-field"><div className="field"><label>Exercise</label><ExercisePicker defaultName={exercise?.name || ""} defaultMuscleGroup={exercise?.muscleGroup || ""} defaultEquipment={exercise?.equipment || ""}/></div></div>
     <div className="form-grid-three"><div className="field compact-field"><label>Sets</label><NumericStepper name="sets" label="Sets" min={1} max={20} defaultValue={exercise?.sets??3}/></div><div className="field compact-field"><label>Rep min</label><NumericStepper name="repsMin" label="Minimum repetitions" min={1} max={100} defaultValue={exercise?.repsMin??8}/></div><div className="field compact-field"><label>Rep max</label><NumericStepper name="repsMax" label="Maximum repetitions" min={1} max={100} defaultValue={exercise?.repsMax??12}/></div></div>
     <div className="form-grid-two"><div className="field"><label>Target load ({weightUnit}) <span className="subtle">(optional)</span></label><WeightControl name="targetKg" label="Target load" unit={weightUnit} defaultValue={targetWeight}/></div><div className="field"><label>Rest duration</label><RestDurationField defaultValue={exercise?.restSeconds??90}/></div></div>
     <div className="field"><label>Target effort <span className="subtle">(optional)</span></label><input name="rpe" type="number" min="1" max="10" step="0.5" defaultValue={exercise?.rpe??""} placeholder="RPE 1–10"/></div>
