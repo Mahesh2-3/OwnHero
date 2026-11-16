@@ -28,7 +28,7 @@ export function PlanExerciseEditor({ mode, recordId, children }: PlanExerciseEdi
       </header>
       <ActionForm action={isAdd ? addExercise : updateExercise} successMessage={isAdd ? "Exercise added to your plan." : "Exercise changes saved."} onSuccess={() => setOpen(false)} className="exercise-editor-form">
         <input type="hidden" name={isAdd ? "dayId" : "exerciseId"} value={recordId}/>
-        {children}
+        <div className="exercise-editor-fields">{children}</div>
         <PendingSubmitButton className="primary-button exercise-editor-submit" pendingLabel={isAdd ? "Adding exercise…" : "Saving changes…"}>{isAdd ? "Add exercise" : "Save changes"}</PendingSubmitButton>
       </ActionForm>
     </section>}

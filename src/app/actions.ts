@@ -49,10 +49,11 @@ export async function updateExercise(formData: FormData) {
   const ownerId = await userId();
   const id = z.string().min(1).parse(formData.get("exerciseId"));
   const values = exerciseSchema.omit({ dayId: true }).parse({ name: formData.get("name"), muscleGroup: formData.get("muscleGroup") || undefined, equipment: formData.get("equipment") || undefined, sets: formData.get("sets"), repsMin: formData.get("repsMin"), repsMax: formData.get("repsMax"), targetKg: formData.get("targetKg"), restSeconds: formData.get("restSeconds"), rpe: formData.get("rpe"), notes: formData.get("notes") || undefined });
+  const ownedExercise = await prisma.plannedExercise.findFirst({ where: { id, day: { plan: { userId: ownerId } } }, select: { id: true } });
+  if (!ownedExercise) throw new Error("Exercise not found in your plans.");
   const units = await prisma.userSettings.findUnique({ where:{userId:ownerId},select:{weightUnit:true} });
   const targetKg = values.targetKg == null ? null : toKilograms(values.targetKg,units?.weightUnit === "lbs" ? "lbs" : "kg");
-  const result = await prisma.plannedExercise.updateMany({ where: { id, day: { plan: { userId: ownerId } } }, data: { ...values, targetKg, muscleGroup: values.muscleGroup || null, equipment: values.equipment || null, notes: values.notes || null } });
-  if (!result.count) throw new Error("Exercise not found.");
+  await prisma.plannedExercise.update({ where: { id: ownedExercise.id }, data: { ...values, targetKg, rpe: values.rpe ?? null, muscleGroup: values.muscleGroup || null, equipment: values.equipment || null, notes: values.notes || null } });
   revalidatePath("/plans"); revalidatePath("/dashboard");
 }
 
