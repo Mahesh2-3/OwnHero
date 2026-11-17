@@ -130,12 +130,32 @@ export async function saveProfile(formData: FormData) {
 
 export async function saveAiKey(formData: FormData) {
   const ownerId = await userId();
-  const secret = z.string().trim().min(20).max(300).parse(formData.get("apiKey"));
+  const parsed = z.string().trim().min(20).max(300).safeParse(formData.get("apiKey"));
+  if (!parsed.success) return { error: "Enter a valid Groq API key and try again." };
+  const secret = parsed.data;
   const { validateGroqKey } = await import("@/lib/groq");
-  await validateGroqKey(secret);
+  try {
+    await validateGroqKey(secret);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Groq could not verify this key right now." };
+  }
   const { encryptSecret } = await import("@/lib/crypto");
-  const encrypted = encryptSecret(secret);
-  await prisma.aiProviderConfig.upsert({ where: { userId: ownerId }, create: { userId: ownerId, ...encrypted }, update: encrypted });
+  let encrypted: ReturnType<typeof encryptSecret>;
+  try {
+    encrypted = encryptSecret(secret);
+  } catch (error) {
+    if (error instanceof Error && error.message === "AI key encryption is not configured on this server.") {
+      return { error: "The server is missing AI_ENCRYPTION_KEY. Ask the site administrator to configure it before saving Groq keys." };
+    }
+    console.error("Unable to encrypt a validated Groq API key.", error);
+    return { error: "The Groq key was verified, but OwnHero could not encrypt it." };
+  }
+  try {
+    await prisma.aiProviderConfig.upsert({ where: { userId: ownerId }, create: { userId: ownerId, ...encrypted }, update: encrypted });
+  } catch (error) {
+    console.error("Unable to store a validated Groq API key.", error);
+    return { error: "The Groq key was verified, but OwnHero could not save it. Check the server database and try again." };
+  }
   revalidatePath("/settings");
 }
 
@@ -148,10 +168,14 @@ export async function deleteAiKey() {
 export async function testAiKey() {
   const ownerId = await userId();
   const config = await prisma.aiProviderConfig.findUnique({ where: { userId: ownerId } });
-  if (!config) throw new Error("Save an API key first.");
+  if (!config) return { error: "Save a Groq API key first." };
   const { decryptSecret } = await import("@/lib/crypto");
   const { validateGroqKey } = await import("@/lib/groq");
-  await validateGroqKey(decryptSecret(config));
+  try {
+    await validateGroqKey(decryptSecret(config));
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Groq could not verify the saved key right now." };
+  }
   revalidatePath("/settings");
 }
 

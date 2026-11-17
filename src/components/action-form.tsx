@@ -4,7 +4,7 @@ import { createContext, useContext, useTransition } from "react";
 import type { FormEvent, FormHTMLAttributes, ReactNode } from "react";
 import type { FlashKind } from "@/lib/flash";
 
-type ServerFormAction = (formData: FormData) => Promise<void>;
+type ServerFormAction = (formData: FormData) => Promise<void | { error: string }>;
 const PendingContext = createContext(false);
 
 function notify(kind: FlashKind, message: string) {
@@ -20,7 +20,11 @@ export function ActionForm({ action, successMessage, onSuccess, children, ...pro
     const formData = new FormData(form);
     startTransition(async () => {
       try {
-        await action(formData);
+        const result = await action(formData);
+        if (result && "error" in result) {
+          notify("error", result.error);
+          return;
+        }
         notify("success", successMessage);
         onSuccess?.();
       } catch (error) {

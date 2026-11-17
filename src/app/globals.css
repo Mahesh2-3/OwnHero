@@ -578,6 +578,9 @@ h2 {
   outline: 1px solid var(--accent);
   outline-offset: 1px;
 }
+.week-day.completed strong {
+  color: var(--success);
+}
 .heatmap {
   display: grid;
   grid-template-columns: repeat(14, minmax(0, 1fr));
@@ -3095,14 +3098,63 @@ details > summary {
     display: none;
   }
   .session-set-row {
-    grid-template-columns: 30px minmax(0, 1fr) auto;
-    gap: 7px;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 7px 8px;
+  }
+  .session-set-row > * {
+    min-width: 0;
+  }
+  .set-target,
+  .set-readonly {
+    overflow-wrap: anywhere;
   }
   .set-performance-form {
-    grid-column: 2/4;
+    grid-column: 1/-1;
     grid-row: 2;
-    grid-template-columns: minmax(104px, 1fr) 76px 62px 42px;
-    gap: 4px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 7px;
+  }
+  .set-performance-form > .stepper-control {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .set-performance-form > .session-weight-input {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .set-performance-form > .rpe-input {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .set-performance-form > .icon-save-button {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .session-set-row > .set-complete-form,
+  .session-set-row > .set-status {
+    grid-column: 2;
+    grid-row: 3;
+    justify-self: start;
+  }
+  .session-set-row > .set-complete-form {
+    width: auto;
+  }
+  .session-set-row > .set-readonly {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .session-exercise {
+    min-width: 0;
+  }
+  .session-exercise-header {
+    flex-wrap: wrap;
+  }
+  .session-exercise-title {
+    flex: 1 1 100%;
+  }
+  .session-exercise-title h2,
+  .session-exercise-title p {
+    overflow-wrap: anywhere;
   }
   .set-performance-form .stepper-button {
     width: 24px;
@@ -3130,15 +3182,6 @@ details > summary {
     min-height: 36px;
     padding: 5px 6px;
     font-size: 9px;
-  }
-  .set-complete-form,
-  .set-status {
-    grid-column: 3;
-    grid-row: 1;
-  }
-  .set-readonly {
-    grid-column: 2/4;
-    grid-row: 2;
   }
   .session-exercise {
     padding: 16px 13px;
